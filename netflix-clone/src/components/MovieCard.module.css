@@ -1,0 +1,26 @@
+.card {
+  cursor: pointer;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: transform 0.2s ease;
+  background-color: #1c1c1c;
+  color: white;
+}
+
+.card:hover {
+  transform: scale(1.05);
+}
+
+.poster {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.title {
+  text-align: center;
+  font-size: 1.2rem;
+  margin: 10px 0;
+  font-weight: bold;
+}
