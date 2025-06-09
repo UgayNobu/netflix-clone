@@ -1,0 +1,119 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Account lockout fields
+  failedLoginAttempts Int?     @default(0)
+  lockUntil           DateTime?
+
+  // Relations
+  watchlist Watchlist[]
+  history   History[]
+
+  @@map("users")
+}
+
+model Movie {
+  id               String    @id @default(cuid())
+  title            String
+  description      String
+  releaseYear      Int
+  duration         Int // in minutes
+  rating           Float     @default(0)
+  imageUrl         String?
+  videoUrl         String?
+  trailerUrl       String?
+  isTrending       Boolean   @default(false)
+  isNetflixOriginal Boolean  @default(false)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  // Relations
+  genres    MovieGenre[]
+  watchlist Watchlist[]
+  history   History[]
+
+  // Indexes for performance
+  @@index([isTrending])
+  @@index([isNetflixOriginal])
+  @@index([releaseYear])
+  @@index([rating])
+  @@map("movies")
+}
+
+model Genre {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+
+  // Relations
+  movies MovieGenre[]
+
+  @@map("genres")
+}
+
+model MovieGenre {
+  movieId String
+  genreId String
+  movie   Movie  @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  genre   Genre  @relation(fields: [genreId], references: [id], onDelete: Cascade)
+
+  @@id([movieId, genreId])
+  @@map("movie_genres")
+}
+
+model Watchlist {
+  id      String   @id @default(cuid())
+  userId  String
+  movieId String
+  addedAt DateTime @default(now())
+
+  // Relations
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie Movie @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  // Unique constraint to prevent duplicates
+  @@unique([userId, movieId])
+  @@index([userId])
+  @@map("watchlist")
+}
+
+model History {
+  id            String   @id @default(cuid())
+  userId        String
+  movieId       String
+  watchedAt     DateTime @default(now())
+  watchDuration Int      @default(0) // in seconds
+  completed     Boolean  @default(false)
+
+  // Relations
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie Movie @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([watchedAt])
+  @@map("history")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
