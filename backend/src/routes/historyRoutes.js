@@ -5,18 +5,11 @@ const router = express.Router();
 
 router
   .route('/')
-  .get(historyController.getAllHistory)
-  .post(historyController.addToHistory);
-
-router
-  .route('/user/:userId')
-  .get(historyController.getUserHistory)
-  .delete(historyController.clearUserHistory);
+  .get(historyController.getUserHistory) // Get user's viewing history
+  .post(historyController.addToHistory); // Add a movie to history
 
 router
   .route('/:id')
-  .get(historyController.getHistoryItem)
-  .patch(historyController.updateHistory)
-  .delete(historyController.deleteHistoryItem);
+  .delete(historyController.removeFromHistory); // Remove a movie from history
 
 module.exports = router;

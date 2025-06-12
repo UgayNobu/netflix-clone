@@ -52,4 +52,12 @@ app.use((err, req, res, next) => {
   });
 });
 
+// 404 Not Found middleware
+app.use((req, res) => {
+  res.status(404).json({
+    status: 'error',
+    message: 'Route not found',
+  });
+});
+
 module.exports = app;

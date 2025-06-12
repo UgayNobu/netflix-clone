@@ -5,13 +5,13 @@ const router = express.Router();
 
 router
   .route('/')
-  .get(genreController.getAllGenres)
-  .post(genreController.createGenre);
+  .get(genreController.getAllGenres) // Get all genres
+  .post(genreController.createGenre); // Add a new genre
 
 router
   .route('/:id')
-  .get(genreController.getGenre)
-  .patch(genreController.updateGenre)
-  .delete(genreController.deleteGenre);
+  .get(genreController.getGenre) // Get a genre by ID
+  .patch(genreController.updateGenre) // Update a genre by ID
+  .delete(genreController.deleteGenre); // Delete a genre by ID
 
 module.exports = router;

@@ -5,17 +5,11 @@ const router = express.Router();
 
 router
   .route('/')
-  .get(watchlistController.getAllWatchlists)
-  .post(watchlistController.addToWatchlist);
-
-router
-  .route('/user/:userId')
-  .get(watchlistController.getUserWatchlist);
+  .get(watchlistController.getUserWatchlist) // Get user's watchlist
+  .post(watchlistController.addToWatchlist); // Add a movie to watchlist
 
 router
   .route('/:id')
-  .get(watchlistController.getWatchlist)
-  .patch(watchlistController.updateWatchlist)
-  .delete(watchlistController.removeFromWatchlist);
+  .delete(watchlistController.removeFromWatchlist); // Remove a movie from watchlist
 
 module.exports = router;

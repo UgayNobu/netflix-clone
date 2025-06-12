@@ -1,149 +1,48 @@
-const History = require('../models/historyModel');
+const { Pool } = require('pg');
 
-exports.getAllHistory = async (req, res) => {
-  try {
-    const history = await History.find();
-    
-    res.status(200).json({
-      status: 'success',
-      results: history.length,
-      data: {
-        history
-      }
-    });
-  } catch (err) {
-    res.status(500).json({
-      status: 'error',
-      message: err.message
-    });
-  }
-};
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
 
+// Get user's viewing history
 exports.getUserHistory = async (req, res) => {
+  const { user_id } = req.query;
+
   try {
-    const history = await History.find({ user: req.params.userId }).sort({ watchedAt: -1 });
-    
-    res.status(200).json({
-      status: 'success',
-      results: history.length,
-      data: {
-        history
-      }
-    });
-  } catch (err) {
-    res.status(500).json({
-      status: 'error',
-      message: err.message
-    });
+    const history = await pool.query(
+      'SELECT * FROM history WHERE user_id = $1',
+      [user_id]
+    );
+    res.status(200).json(history.rows);
+  } catch (error) {
+    res.status(500).json({ message: 'Error retrieving history', error: error.message });
   }
 };
 
-exports.getHistoryItem = async (req, res) => {
-  try {
-    const historyItem = await History.findById(req.params.id);
-    
-    if (!historyItem) {
-      return res.status(404).json({
-        status: 'fail',
-        message: 'History item not found'
-      });
-    }
-    
-    res.status(200).json({
-      status: 'success',
-      data: {
-        history: historyItem
-      }
-    });
-  } catch (err) {
-    res.status(500).json({
-      status: 'error',
-      message: err.message
-    });
-  }
-};
-
+// Add a movie to history
 exports.addToHistory = async (req, res) => {
+  const { user_id, movie_id } = req.body;
+
   try {
-    const newHistoryItem = await History.create(req.body);
-    
-    res.status(201).json({
-      status: 'success',
-      data: {
-        history: newHistoryItem
-      }
-    });
-  } catch (err) {
-    res.status(400).json({
-      status: 'fail',
-      message: err.message
-    });
+    const newEntry = await pool.query(
+      'INSERT INTO history (user_id, movie_id) VALUES ($1, $2) RETURNING *',
+      [user_id, movie_id]
+    );
+
+    res.status(201).json(newEntry.rows[0]);
+  } catch (error) {
+    res.status(500).json({ message: 'Error adding to history', error: error.message });
   }
 };
 
-exports.updateHistory = async (req, res) => {
-  try {
-    const historyItem = await History.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true
-    });
-    
-    if (!historyItem) {
-      return res.status(404).json({
-        status: 'fail',
-        message: 'History item not found'
-      });
-    }
-    
-    res.status(200).json({
-      status: 'success',
-      data: {
-        history: historyItem
-      }
-    });
-  } catch (err) {
-    res.status(400).json({
-      status: 'fail',
-      message: err.message
-    });
-  }
-};
+// Remove a movie from history
+exports.removeFromHistory = async (req, res) => {
+  const { id } = req.params;
 
-exports.deleteHistoryItem = async (req, res) => {
   try {
-    const historyItem = await History.findByIdAndDelete(req.params.id);
-    
-    if (!historyItem) {
-      return res.status(404).json({
-        status: 'fail',
-        message: 'History item not found'
-      });
-    }
-    
-    res.status(204).json({
-      status: 'success',
-      data: null
-    });
-  } catch (err) {
-    res.status(500).json({
-      status: 'error',
-      message: err.message
-    });
-  }
-};
-
-exports.clearUserHistory = async (req, res) => {
-  try {
-    await History.deleteMany({ user: req.params.userId });
-    
-    res.status(204).json({
-      status: 'success',
-      data: null
-    });
-  } catch (err) {
-    res.status(500).json({
-      status: 'error',
-      message: err.message
-    });
+    await pool.query('DELETE FROM history WHERE id = $1', [id]);
+    res.status(200).json({ message: 'Movie removed from history successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error removing from history', error: error.message });
   }
 };
