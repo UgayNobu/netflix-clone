@@ -1,6 +1,16 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const mongoose = require('mongoose');
+const { Pool } = require('pg');
+
+// Initialize PostgreSQL connection
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
+
+pool.connect()
+  .then(() => console.log('Connected to PostgreSQL'))
+  .catch(err => console.error('PostgreSQL connection error:', err));
 
 // Import routes
 const movieRoutes = require('./routes/movieRoutes');
@@ -8,6 +18,7 @@ const userRoutes = require('./routes/userRoutes');
 const genreRoutes = require('./routes/genreRoutes');
 const watchlistRoutes = require('./routes/watchlistRoutes');
 const historyRoutes = require('./routes/historyRoutes');
+const authRoutes = require('./routes/authRoutes'); // Import auth routes
 
 // Initialize express app
 const app = express();
@@ -23,17 +34,13 @@ app.use((req, res, next) => {
   next();
 });
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('Connected to MongoDB'))
-  .catch(err => console.error('MongoDB connection error:', err));
-
 // Routes
 app.use('/api/v1/movies', movieRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/genres', genreRoutes);
 app.use('/api/v1/watchlist', watchlistRoutes);
 app.use('/api/v1/history', historyRoutes);
+app.use('/api/auth', authRoutes); // Add auth routes
 
 // Error handling middleware
 app.use((err, req, res, next) => {
